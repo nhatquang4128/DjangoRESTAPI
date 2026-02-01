@@ -17,9 +17,9 @@ def post_list(request):
                 {'detail': 'Authentication Credentials were not provided.'},
                 status=status.HTTP_401_UNAUTHORIZED
             )
-        serializer = PostSerializer(data = request.data)
+        serializer = PostSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(author=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -40,6 +40,12 @@ def post_detail(request, pk):
         return Response(
             {'detail': 'Authentication Credentials were not provided.'},
             status=status.HTTP_401_UNAUTHORIZED
+        )
+
+    if post.author != request.user:
+        return Response(
+            {'detail': 'You are not the author of this post.'},
+            status=status.HTTP_403_FORBIDDEN
         )
     if request.method == 'PUT':
         serializer = PostSerializer(post, data=request.data)
